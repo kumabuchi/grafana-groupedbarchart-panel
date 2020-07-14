@@ -149,16 +149,21 @@ System.register(['app/plugins/sdk', 'lodash', 'app/core/utils/kbn', 'app/core/ti
                     key: 'onDataReceived',
                     value: function onDataReceived(dataList) {
                         if (dataList && dataList.length) {
+
+                            var offset = dataList[0].columns.length - 3;
+                            let subset = new Set();
+
                             var o = _.groupBy(dataList[0].rows, function (e) {
-                                return e[0];
+                                return e[offset+0];
                             });
                             _.forOwn(o, function (e, i) {
                                 var t = _.groupBy(e, function (sta) {
-                                    return sta[1];
+                                    subset.add(sta[offset+1]);
+                                    return sta[offset+1];
                                 });
                                 o[i] = _.forOwn(t, function (sum, tid) {
                                     t[tid] = sum.map(function (s) {
-                                        return s[2];
+                                        return s[offset+2];
                                     }).reduce(function (x, y) {
                                         return x + y;
                                     });
@@ -168,11 +173,23 @@ System.register(['app/plugins/sdk', 'lodash', 'app/core/utils/kbn', 'app/core/ti
                             var res = [];
                             _.forOwn(o, function (e, i) {
                                 e.label = i;
+                                Array.from(subset).sort().forEach(function(s) {
+                                    if (isNaN(e[s])) {
+                                        e[s] = 0;
+                                        //e[s.split('_')[0]] = 0;
+                                    } else {
+                                        var val = e[s];
+                                        delete e[s];
+                                        e[s] = val;
+                                        //e[s.split('_')[0]] = val;
+                                    }
+                                });
+                                console.log(e);
                                 res.push(e);
                             });
-                            this.data = res;//.sort(function (a, b) {
-                                //return a.label > b.label ? -1 : b.label > a.label ? 1 : 0;
-                            //});
+                            this.data = res.sort(function (a, b) {
+                                return a.label > b.label ? -1 : b.label > a.label ? 1 : 0;
+                            });
                         } else {
                             this.data = [{ label: "Machine001", "Off": 15, "Down": 50, "Run": 0, "Idle": 40 }, { label: "Machine002", "Off": 15, "Down": 5, "Run": 40, "Idle": 15 }, { label: "Machine003", "Off": 15, "Down": 30, "Run": 40, "Idle": 15 }, { label: "Machine004", "Off": 15, "Down": 30, "Run": 80, "Idle": 15 }];
                         }
@@ -427,7 +444,7 @@ System.register(['app/plugins/sdk', 'lodash', 'app/core/utils/kbn', 'app/core/ti
                                         case 'On graph':
                                             var defaultOptions = this.chartType == 'bar chart' || this.orientation == 'horizontal' ? this.options.slice() : this.options.slice().reverse();
                                             this.legend = this.svg.selectAll('.legend').data(defaultOptions).enter().append('g').attr('class', 'legend').attr('transform', function (d, i) {
-                                                return 'translate(50,' + (i * 20 + _this5.margin.top) + ')';
+                                                return 'translate(200,' + (i * 20 + _this5.margin.top) + ')';
                                             });
 
                                             this.legend.append('rect').attr('x', this.width * 1.1 - 18).attr('width', 18).attr('height', 18).style('fill', this.color);
