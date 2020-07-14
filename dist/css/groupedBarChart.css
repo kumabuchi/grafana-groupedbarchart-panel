@@ -40,7 +40,8 @@ text {
 }
 .axis .tick line {
     stroke-width: 1;
-    stroke: rgba(255, 255, 255, 0.2);
+    /*stroke: rgba(255, 255, 255, 0.2);*/
+    stroke: rgba(82, 84, 92, 0.2);
 }
 .x.axis path {
     display: none;
